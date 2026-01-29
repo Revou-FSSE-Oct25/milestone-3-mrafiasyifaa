@@ -44,7 +44,7 @@ const Footer = async () => {
         <div className="space-y-4 mt-2">
           <SubTitle>Newsletter</SubTitle>
           <SubText>Subscribe to our newsletter to receive updates on our exclusive offers!</SubText>
-          <form>
+          <form className="space-y-3">
             <Input placeholder="youremail@example.com" type="email" required></Input>
             <Button className="w-full">Subscribe</Button>
           </form>

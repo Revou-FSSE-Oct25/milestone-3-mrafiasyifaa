@@ -6,7 +6,7 @@ import banner from '@/src/images/banner/banner_electronic.webp'
 
 const Banner = () => {
   return (
-    <div className="py-16 md:py-0 bg-revoshop-complement/80 rounded-lg px-10 lg:px-24 flex item-center justify-between overflow-hidden h-[250px]">
+    <div className="py-16 md:py-0 bg-revoshop-complement/80 rounded-lg px-10 lg:px-24 flex item-center justify-between overflow-hidden h-62.5">
     <div className="flex items-center space-y-5">
         <Title className="text-white mb-5">Enjoy 50% Off Electronics!<br></br>Use Promo Code: "SAWIT"</Title>
     </div>
