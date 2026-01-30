@@ -78,7 +78,7 @@ const CategoryList = ({ selectedCategory, onTabSelect }: Props) => {
                 <button 
                   key={item.id}
                   onClick={() => onTabSelect(item.name)}
-                  className={`border border-revoshop-accent/30 px-4 py-1.5 md:px-6 rounded-md hover:bg-revoshop-accent-hover hover:border-revoshop-navy hover:text-white hoverEffect ${selectedCategory === item.name ? "bg-revoshop-accent text-white" : "bg-revoshop-accent/30"}`}
+                  className={`border border-revoshop-accent/10 px-4 py-1.5 md:px-6 rounded-md hover:bg-revoshop-accent-hover hover:border-revoshop-navy hover:text-white hoverEffect ${selectedCategory === item.name ? "bg-revoshop-accent text-white" : "bg-revoshop-accent/10"}`}
                 >
                   {item.name}
                 </button>

@@ -31,7 +31,7 @@ const NoProduct = ({
         criteria at the moment.
       </p>
 
-      <div className="flex items-center space-x-2 text-gray-700">
+      <div className="flex items-center space-x-2 text-blue-700">
         <Loader className="w-5 h-5 animate-spin" />
         <span className="font-medium">We&apos;re restocking shortly</span>
       </div>

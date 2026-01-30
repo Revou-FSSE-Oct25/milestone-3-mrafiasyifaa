@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { SubText, SubTitle } from './ui/text'
 import AddToCart from './AddToCart'
 
@@ -21,7 +22,7 @@ interface Product {
 const ProductCard = ({ product }: { product: Product }) => {
   return (
     <div className="text-sm border border-revoshop-navy/20 rounded-md bg-white group flex flex-col h-full">
-      <div className="relative group overflow-hidden bg-neutral-100">
+      <Link href={`/product/${product.slug}/${product.id}`} className="relative group overflow-hidden bg-neutral-100">
         {product?.images && product.images.length > 0 && (
           <Image 
             src={product.images[0]} 
@@ -32,7 +33,7 @@ const ProductCard = ({ product }: { product: Product }) => {
             className="w-full h-64 object-fill overflow-hidden transition-transform bg-white hoverEffect group-hover:scale-105"
           />
         )}
-      </div>
+      </Link>
       <div className="p-3 flex flex-col gap-2 flex-1">
         {product?.category && (
           <SubText className="text-xs text-gray-500">{product.category.name}</SubText>
