@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import Container from "@/components/Container";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,13 +24,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    // Validasi email & password dengan data dari src/config/users.ts
     const user = users.find(
       (u) => u.email === email && u.password === password
     );
 
     if (user) {
-      // Panggil setUser() setelah login berhasil
       setUser({
         id: user.id,
         email: user.email,
@@ -39,7 +37,6 @@ export default function LoginPage() {
         avatar: user.avatar,
       });
 
-      // Handle redirect setelah login (ambil dari query param redirect)
       const redirectUrl = searchParams.get("redirect");
       if (redirectUrl) {
         router.push(redirectUrl);
@@ -137,5 +134,13 @@ export default function LoginPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-lightColor flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

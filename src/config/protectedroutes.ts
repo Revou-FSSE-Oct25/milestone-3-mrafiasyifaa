@@ -1,12 +1,12 @@
+export type UserRole = 'admin' | 'customer';
+
 export const protectedRoutes = [
   {
     path: '/cart',
-    allowedRoles: ['customer'],
+    allowedRoles: ['customer'] as UserRole[],
   },
   {
     path: '/admin',
-    allowedRoles: ['admin'],
+    allowedRoles: ['admin'] as UserRole[],
   },
-] as const;
-
-export type UserRole = 'admin' | 'customer';
+];
