@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { users } from '@/src/config/users';
-import { protectedRoutes } from '@/src/config/protectedRoutes';
+import { protectedRoutes } from '@/src/config/protectedroutes';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -3,6 +3,7 @@ import "../globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "RevoShop",
@@ -17,18 +18,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-poppins antialiased">
-        <div className='flex flex-col min-h-screen'>
-        <Header />
-        <main className="flex-1 bg-lightColor">
-        {children}
-        <Toaster position="bottom-right" toastOptions={{style:{
-          background: "#fff",
-          color: "#000",
-        },
-        }}/>  
-        </main>
-        <Footer />
-        </div>
+        <AuthProvider>
+          <div className='flex flex-col min-h-screen'>
+            <Header />
+            <main className="flex-1 bg-lightColor">
+              {children}
+              <Toaster position="bottom-right" toastOptions={{style:{
+                background: "#fff",
+                color: "#000",
+              },
+              }}/>  
+            </main>
+            <Footer />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -19,6 +20,8 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   if (!isOpen) {
     return null;
@@ -28,11 +31,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     e.preventDefault();
     setError("");
 
+    // Validasi email & password dengan data dari src/config/users.ts
     const user = users.find(
       (u) => u.email === email && u.password === password
     );
 
     if (user) {
+      // Panggil setUser() setelah login berhasil
       setUser({
         id: user.id,
         email: user.email,
@@ -40,9 +45,18 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         role: user.role,
         avatar: user.avatar,
       });
+      
       setEmail("");
       setPassword("");
       onClose();
+      
+      // Handle redirect setelah login (ambil dari query param redirect)
+      const redirectUrl = searchParams.get('redirect');
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push('/');
+      }
     } else {
       setError("Invalid email or password");
     }
@@ -123,9 +137,17 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               Login
             </Button>
 
-            <SubText className="text-xs text-center text-muted-foreground">
-              Demo: john@mail.com / changeme
-            </SubText>
+            <div className="space-y-1">
+              <SubText className="text-xs text-center text-muted-foreground">
+                Demo Accounts:
+              </SubText>
+              <SubText className="text-xs text-center text-muted-foreground">
+                Customer: john@mail.com / changeme
+              </SubText>
+              <SubText className="text-xs text-center text-muted-foreground">
+                Admin: admin@mail.com / admin123
+              </SubText>
+            </div>
           </form>
         </CardContent>
       </Card>
