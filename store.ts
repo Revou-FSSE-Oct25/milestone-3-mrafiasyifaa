@@ -7,8 +7,17 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: 'admin' | 'customer';
+  avatar: string;
+}
+
 interface CartState {
   items: CartItem[];
+  user: User | null;
   addItem: (product: Product) => void;
   removeItem: (productId: string) => void;
   deleteCartProduct: (productId: string) => void;
@@ -17,12 +26,15 @@ interface CartState {
   getSubTotalPrice: () => number;
   getItemCount: (productId: string) => number;
   getGroupedItems: () => CartItem[];
+  setUser: (user: User) => void;
+  logout: () => void;
 }
 
 const useStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      user: null,
       addItem: (product) =>
         set((state) => {
           const existingItem = state.items.find(
@@ -77,11 +89,48 @@ const useStore = create<CartState>()(
         return item ? item.quantity : 0;
       },
       getGroupedItems: () => get().items,
+      
+      setUser: (user) => {
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 1);
+        
+        if (typeof window !== 'undefined') {
+          document.cookie = `auth_session=${JSON.stringify(user)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Lax`;
+        }
+        
+        set({ user });
+      },
+      
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          document.cookie = 'auth_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        }
+        
+        set({ user: null });
+      },
     }),
     {
       name: 'cart-store',
     }
   )
 );
+
+export const getSessionFromCookie = (): User | null => {
+  if (typeof window === 'undefined') return null;
+  
+  const cookies = document.cookie.split('; ');
+  const authCookie = cookies.find(cookie => cookie.startsWith('auth_session='));
+  
+  if (!authCookie) return null;
+  
+  try {
+    const cookieValue = authCookie.split('=')[1];
+    const user = JSON.parse(decodeURIComponent(cookieValue));
+    return user;
+  } catch (error) {
+    console.error('Error parsing auth cookie:', error);
+    return null;
+  }
+};
 
 export default useStore;
