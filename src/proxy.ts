@@ -6,6 +6,10 @@ import { protectedRoutes } from '@/src/config/protectedroutes';
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if(pathname === '/unauthorized'){
+    return NextResponse.next()
+  }
+
   const protectedRoute = protectedRoutes.find((route) =>
     pathname.startsWith(route.path)
   );
@@ -27,12 +31,8 @@ export function proxy(request: NextRequest) {
       );
 
       if (!validUser || !protectedRoute.allowedRoles.includes(validUser.role)) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        
-        const response = NextResponse.redirect(loginUrl);
-        response.cookies.delete('auth_session');
-        return response;
+        const unauthorizedUrl = new URL('/unauthorized', request.url);
+        return NextResponse.redirect(unauthorizedUrl);
       }
 
       return NextResponse.next();
@@ -48,5 +48,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/cart/:path*', '/admin/:path*'],
+  matcher: ['/cart/:path*', '/admin/:path*', '/dashboard/:path*'],
 };

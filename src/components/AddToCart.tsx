@@ -7,6 +7,7 @@ import { Product } from '@/src/types/product'
 import useStore from '@/store'
 import { toast } from 'sonner'
 import QuantityButtons from './QuantityButtons'
+import { useRouter } from 'next/navigation'
 
 interface Props {
     product: Product;
@@ -15,6 +16,9 @@ interface Props {
 
 const AddToCart = ({product, className}: Props) => {
   const addItem = useStore((state) => state.addItem);
+  const user = useStore((state) => state.user);
+  const router = useRouter();
+  
   const itemCount = useStore((state)=>{
     const item = state.items.find(
       (item)=> item.product.id.toString() === product.id.toString()
@@ -23,6 +27,15 @@ const AddToCart = ({product, className}: Props) => {
   })
 
     const handleAddToCart = () => {
+        if (!user) {
+            toast.error("Please login first", {
+                description: "You need to be logged in to add items to cart",
+                duration: 2000,
+            });
+            router.push(`/login?redirect=/product/${product.slug}/${product.id}`);
+            return;
+        }
+
         addItem(product);
         toast.success(`${product?.title?.substring(0, 12)}... added to cart!`, {
           duration: 1500,

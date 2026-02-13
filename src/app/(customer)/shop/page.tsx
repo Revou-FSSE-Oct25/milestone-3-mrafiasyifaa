@@ -19,7 +19,9 @@ interface Props{
 const ShopPage = async ({searchParams}: Props) => {
   const params = await searchParams;
   
-  const response = await fetch('https://api.escuelajs.co/api/v1/categories')
+  const response = await fetch('https://api.escuelajs.co/api/v1/categories', {
+    next: { revalidate: 300 }
+  })
   const categories: Category[] = await response.json()
 
   return (

@@ -16,23 +16,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="font-poppins antialiased">
-        <AuthProvider>
-          <div className='flex flex-col min-h-screen'>
-            <Header />
-            <main className="flex-1 bg-lightColor">
-              {children}
-              <Toaster position="bottom-right" toastOptions={{style:{
+    <AuthProvider>
+      <div className='flex flex-col min-h-screen'>
+        <Header />
+        <main className="flex-1 bg-lightColor">
+          {children}
+          <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+              style: {
                 background: "#fff",
                 color: "#000",
               },
-              }}/>  
-            </main>
-            <Footer />
-          </div>
-        </AuthProvider>
-      </body>
-    </html>
+            }}
+          />  
+        </main>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }
