@@ -104,6 +104,19 @@ const useStore = create<CartState>()(
       logout: () => {
         if (typeof window !== 'undefined') {
           document.cookie = 'auth_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          
+          try {
+            const stored = localStorage.getItem('cart-store');
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              localStorage.setItem('cart-store', JSON.stringify({ 
+                state: { items: parsed.state?.items || [], user: null },
+                version: parsed.version || 0
+              }));
+            }
+          } catch (e) {
+            console.error('Error clearing localStorage:', e);
+          }
         }
         
         set({ user: null });
@@ -111,6 +124,7 @@ const useStore = create<CartState>()(
     }),
     {
       name: 'cart-store',
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );
