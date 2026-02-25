@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product } from '@/src/types/product';
+import { cookies } from 'next/headers';
 
 export interface CartItem {
   product: Product;
@@ -106,10 +107,10 @@ const useStore = create<CartState>()(
           document.cookie = 'auth_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           
           try {
-            const stored = localStorage.getItem('cart-store');
+            const stored = sessionStorage.getItem('cart-store');
             if (stored) {
               const parsed = JSON.parse(stored);
-              localStorage.setItem('cart-store', JSON.stringify({ 
+              sessionStorage.setItem('cart-store', JSON.stringify({ 
                 state: { items: parsed.state?.items || [], user: null },
                 version: parsed.version || 0
               }));
