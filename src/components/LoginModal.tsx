@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { SubText } from "./ui/text";
-import { X } from "lucide-react";
-import { users } from "@/src/config/users";
+import { X, Loader } from "lucide-react";
 import useStore from "@/store";
+import { toast } from "sonner";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { setUser } = useStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,38 +28,68 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     return null;
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // Validasi email & password dengan data dari src/config/users.ts
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (user) {
-      // Panggil setUser() setelah login berhasil
-      setUser({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
+    try {
+      const loginResponse = await fetch("https://api.escuelajs.co/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
-      
+
+      if (!loginResponse.ok) {
+        throw new Error("Invalid email or password");
+      }
+
+      const { access_token } = await loginResponse.json();
+
+      const profileResponse = await fetch("https://api.escuelajs.co/api/v1/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      if (!profileResponse.ok) {
+        throw new Error("Failed to fetch user profile");
+      }
+
+      const userData = await profileResponse.json();
+
+      setUser({
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        avatar: userData.avatar,
+      });
+
       setEmail("");
       setPassword("");
       onClose();
-      
-      // Handle redirect setelah login (ambil dari query param redirect)
+
+      toast.success("Login successful!", {
+        description: `Welcome back, ${userData.name}!`,
+      });
+
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
         router.push('/');
       }
-    } else {
-      setError("Invalid email or password");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,7 +107,8 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
       <Card className="w-full max-w-md mx-4 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-revoshop-accent-hover hoverEffect"
+          disabled={loading}
+          className="absolute top-4 right-4 text-gray-500 hover:text-revoshop-accent-hover hoverEffect disabled:opacity-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -104,6 +136,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
                 className="w-full"
               />
             </div>
@@ -122,6 +155,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
                 className="w-full"
               />
             </div>
@@ -132,22 +166,18 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
             <Button
               type="submit"
+              disabled={loading}
               className="w-full bg-revoshop-accent hover:bg-revoshop-accent-hover"
             >
-              Login
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Logging in...
+                </span>
+              ) : (
+                "Login"
+              )}
             </Button>
-
-            <div className="space-y-1">
-              <SubText className="text-xs text-center text-muted-foreground">
-                Demo Accounts:
-              </SubText>
-              <SubText className="text-xs text-center text-muted-foreground">
-                Customer: john@mail.com / changeme
-              </SubText>
-              <SubText className="text-xs text-center text-muted-foreground">
-                Admin: admin@mail.com / admin123
-              </SubText>
-            </div>
           </form>
         </CardContent>
       </Card>

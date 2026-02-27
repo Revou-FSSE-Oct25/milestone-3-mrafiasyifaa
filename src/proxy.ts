@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { users } from '@/src/config/users';
 import { protectedRoutes } from '@/src/config/protectedroutes';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if(pathname === '/unauthorized'){
@@ -26,11 +25,7 @@ export function proxy(request: NextRequest) {
     try {
       const user = JSON.parse(authCookie.value);
 
-      const validUser = users.find(
-        (u) => u.id === user.id && u.email === user.email
-      );
-
-      if (!validUser || !protectedRoute.allowedRoles.includes(validUser.role)) {
+      if (!protectedRoute.allowedRoles.includes(user.role)) {
         const unauthorizedUrl = new URL('/unauthorized', request.url);
         return NextResponse.redirect(unauthorizedUrl);
       }
@@ -38,6 +33,7 @@ export function proxy(request: NextRequest) {
       return NextResponse.next();
     } catch (error) {
       const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('redirect', pathname);
       const response = NextResponse.redirect(loginUrl);
       response.cookies.delete('auth_session');
       return response;

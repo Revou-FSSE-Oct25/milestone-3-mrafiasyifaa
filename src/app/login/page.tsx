@@ -6,35 +6,66 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubText } from "@/components/ui/text";
-import { users } from "@/src/config/users";
 import useStore from "@/store";
 import Container from "@/components/Container";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader } from "lucide-react";
+import { toast } from "sonner";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { setUser } = useStore();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
+    try {
+      const loginResponse = await fetch("https://api.escuelajs.co/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    if (user) {
+      if (!loginResponse.ok) {
+        throw new Error("Invalid email or password");
+      }
+
+      const { access_token } = await loginResponse.json();
+
+      const profileResponse = await fetch("https://api.escuelajs.co/api/v1/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      if (!profileResponse.ok) {
+        throw new Error("Failed to fetch user profile");
+      }
+
+      const userData = await profileResponse.json();
+
       setUser({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        avatar: userData.avatar,
+      });
+
+      toast.success("Login successful!", {
+        description: `Welcome back, ${userData.name}!`,
       });
 
       const redirectUrl = searchParams.get("redirect");
@@ -43,8 +74,14 @@ function LoginForm() {
       } else {
         router.push("/");
       }
-    } else {
-      setError("Invalid email or password");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      setError(errorMessage);
+      toast.error("Login failed", {
+        description: errorMessage,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,6 +121,7 @@ function LoginForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                     className="w-full"
                   />
                 </div>
@@ -102,6 +140,7 @@ function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                     className="w-full"
                   />
                 </div>
@@ -112,22 +151,18 @@ function LoginForm() {
 
                 <Button
                   type="submit"
+                  disabled={loading}
                   className="w-full bg-revoshop-accent hover:bg-revoshop-accent-hover"
                 >
-                  Login
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Logging in...
+                    </span>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
-
-                <div className="space-y-1 pt-4 border-t">
-                  <SubText className="text-xs text-center text-muted-foreground font-semibold">
-                    Demo Accounts:
-                  </SubText>
-                  <SubText className="text-xs text-center text-muted-foreground">
-                    Customer: john@mail.com / changeme
-                  </SubText>
-                  <SubText className="text-xs text-center text-muted-foreground">
-                    Admin: admin@mail.com / admin123
-                  </SubText>
-                </div>
               </form>
             </CardContent>
           </Card>
