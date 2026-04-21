@@ -42,10 +42,15 @@ const DashboardPage = () => {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [images, setImages] = useState("");
+  const [page, setPage] = useState(1);
+  const LIMIT = 10;
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("https://api.escuelajs.co/api/v1/products");
+      const response = await axios.get(
+        "https://api.escuelajs.co/api/v1/products",
+      );
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -57,13 +62,15 @@ const DashboardPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("https://api.escuelajs.co/api/v1/categories");
+      const response = await axios.get(
+        "https://api.escuelajs.co/api/v1/categories",
+      );
       setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
   };
-  
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -85,23 +92,36 @@ const DashboardPage = () => {
     setPrice(product.price ? product.price.toString() : "");
     setDescription(product.description || "");
     setCategoryId(product.category?.id ? product.category.id.toString() : "");
-    setImages(product.images && Array.isArray(product.images) ? product.images.join(", ") : "");
+    setImages(
+      product.images && Array.isArray(product.images)
+        ? product.images.join(", ")
+        : "",
+    );
     setIsModalOpen(true);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      const imageArray = images.split(",").map((img) => img.trim()).filter((img) => img);
-      
-      const response = await axios.post("https://api.escuelajs.co/api/v1/products", {
-        title,
-        price: Number(price),
-        description,
-        categoryId: Number(categoryId),
-        images: imageArray.length > 0 ? imageArray : ["https://placeimg.com/640/480/any"],
-      });
+      const imageArray = images
+        .split(",")
+        .map((img) => img.trim())
+        .filter((img) => img);
+
+      const response = await axios.post(
+        "https://api.escuelajs.co/api/v1/products",
+        {
+          title,
+          price: Number(price),
+          description,
+          categoryId: Number(categoryId),
+          images:
+            imageArray.length > 0
+              ? imageArray
+              : ["https://placeimg.com/640/480/any"],
+        },
+      );
 
       setProducts([response.data, ...products]);
       toast.success("Product created successfully!");
@@ -114,12 +134,15 @@ const DashboardPage = () => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!editingProduct) return;
 
     try {
-      const imageArray = images.split(",").map((img) => img.trim()).filter((img) => img);
-      
+      const imageArray = images
+        .split(",")
+        .map((img) => img.trim())
+        .filter((img) => img);
+
       const response = await axios.put(
         `https://api.escuelajs.co/api/v1/products/${editingProduct.id}`,
         {
@@ -128,11 +151,11 @@ const DashboardPage = () => {
           description,
           categoryId: Number(categoryId),
           images: imageArray.length > 0 ? imageArray : editingProduct.images,
-        }
+        },
       );
 
       setProducts(
-        products.map((p) => (p.id === editingProduct.id ? response.data : p))
+        products.map((p) => (p.id === editingProduct.id ? response.data : p)),
       );
       toast.success("Product updated successfully!");
       setIsModalOpen(false);
@@ -148,6 +171,7 @@ const DashboardPage = () => {
     try {
       await axios.delete(`https://api.escuelajs.co/api/v1/products/${id}`);
       setProducts(products.filter((p) => p.id !== id));
+      setPage(1);
       toast.success("Product deleted successfully!");
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -200,61 +224,84 @@ const DashboardPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.slice(0, 50).map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="relative w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
-                        {product.images && product.images[0] && (
-                          <Image
-                            src={product.images[0]}
-                            alt={product.title || "Product"}
-                            fill
-                            className="object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <SubTitle className="text-sm">{product.title}</SubTitle>
-                      <SubText className="text-xs line-clamp-1 mt-1">
-                        {product.description}
-                      </SubText>
-                    </td>
-                    <td className="px-6 py-4">
-                      <SubTitle className="text-sm">${product.price}</SubTitle>
-                    </td>
-                    <td className="px-6 py-4">
-                      <SubText className="text-sm">
-                        {product.category?.name || "N/A"}
-                      </SubText>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => openEditModal(product)}
-                          className="hover:bg-blue-50 hover:text-blue-600"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleDelete(product.id)}
-                          className="hover:bg-red-50 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {products
+                  .slice((page - 1) * LIMIT, page * LIMIT)
+                  .map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="relative w-16 h-16 bg-gray-100 rounded-md overflow-hidden">
+                          {product.images && product.images[0] && (
+                            <Image
+                              src={product.images[0]}
+                              alt={product.title || "Product"}
+                              fill
+                              className="object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <SubTitle className="text-sm">{product.title}</SubTitle>
+                        <SubText className="text-xs line-clamp-1 mt-1">
+                          {product.description}
+                        </SubText>
+                      </td>
+                      <td className="px-6 py-4">
+                        <SubTitle className="text-sm">
+                          ${product.price}
+                        </SubTitle>
+                      </td>
+                      <td className="px-6 py-4">
+                        <SubText className="text-sm">
+                          {product.category?.name || "N/A"}
+                        </SubText>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openEditModal(product)}
+                            className="hover:bg-blue-50 hover:text-blue-600"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDelete(product.id)}
+                            className="hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+          </div>
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 text-sm border rounded disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-sm">
+              Page {page} of {Math.ceil(products.length / LIMIT)}
+            </span>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= Math.ceil(products.length / LIMIT)}
+              className="px-4 py-2 text-sm border rounded disabled:opacity-40"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}
