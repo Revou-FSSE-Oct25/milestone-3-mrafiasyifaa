@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "../globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
@@ -17,20 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <AuthProvider>
-      <div className='flex flex-col min-h-screen'>
+      <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 bg-lightColor">
-          {children}
-          <Toaster 
-            position="bottom-right" 
-            toastOptions={{
-              style: {
-                background: "#fff",
-                color: "#000",
-              },
-            }}
-          />  
-        </main>
+        <main className="flex-1 bg-lightColor">{children}</main>
         <Footer />
       </div>
     </AuthProvider>
