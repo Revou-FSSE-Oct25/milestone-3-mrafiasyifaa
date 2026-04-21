@@ -112,6 +112,7 @@ export async function POST(request: NextRequest){
         }))
 
         return NextResponse.json({success: true, user, access_token})
+
     } catch (error){
         console.log(JSON.stringify({
             event: "auth.login.error",
