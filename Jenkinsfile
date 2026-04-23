@@ -1,0 +1,12 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Install') {
+            steps {
+                echo 'Installing dependencies...'
+                bat 'npm ci'
+            }
+        }
+    }
+}
