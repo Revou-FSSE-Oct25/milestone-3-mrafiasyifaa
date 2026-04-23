@@ -23,7 +23,7 @@ function checkRateLimit(ip: string): {allowed: boolean, remaining: number}{
     return {allowed: true, remaining: RATE_LIMIT-entry.count}
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^@\s]{1,64}@[^@\s]{1,255}$/;
 
 export async function POST(request: NextRequest){
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
