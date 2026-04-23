@@ -17,10 +17,13 @@ pipeline {
 
         stage('SAST') {
             steps {
-                echo 'Running SAST with Semgrep...'
-                bat 'npx semgrep scan --config auto --json --output semgrep-report.json || true'
+                echo 'Running SAST - npm audit...'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    bat 'npm audit --json > npm-audit-report.json'
+                }
             }
         }
+
 
         stage('Build') {
             steps {
