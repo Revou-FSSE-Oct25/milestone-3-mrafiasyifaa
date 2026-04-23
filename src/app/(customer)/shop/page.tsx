@@ -24,10 +24,14 @@ const ShopPage = async ({searchParams}: Props) => {
   })
   const categories: Category[] = await response.json()
 
+  const safeCategory = params.category && /^[a-zA-Z0-9-]+$/.test(params.category)
+    ? params.category
+    : null;
+
   return (
-    <Shop 
-      categories={categories} 
-      initialCategory={params.category || null}
+    <Shop
+      categories={categories}
+      initialCategory={safeCategory}
       initialPrice={params.price || null}
     />
   )
