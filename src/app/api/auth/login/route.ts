@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { loginCounter } from "@/src/app/api/metrics/route";
 
 //Rate Limit
 const rateLimitMap = new Map<string, {count: number; resetAt: number}>();
@@ -31,6 +32,9 @@ export async function POST(request: NextRequest){
     const rateLimit = checkRateLimit(ip)
     if(!rateLimit.allowed){
         console.log(JSON.stringify({event: "auth.login.rate_limited", ip, timestamp}))
+
+        loginCounter.inc({ status: "rate_limited" });
+
         return NextResponse.json(
             {error: "Too many login attempts!"},
             {status: 429, headers: {"Retry-After":"900"}}
@@ -78,6 +82,9 @@ export async function POST(request: NextRequest){
             console.log(JSON.stringify(
                 {event: "auth.login.failed", ip, timestamp, email}
             ))
+
+            loginCounter.inc({ status: "failed" });
+
             return NextResponse.json({error: "Invalid email or password!"},{status:401})
         }
 
@@ -110,6 +117,8 @@ export async function POST(request: NextRequest){
             email,
             userId: user.id
         }))
+
+        loginCounter.inc({ status: "success" });
 
         return NextResponse.json({success: true, user, access_token})
 
