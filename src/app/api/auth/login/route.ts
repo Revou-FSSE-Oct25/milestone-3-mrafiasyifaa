@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loginCounter } from "@/src/app/api/metrics/route";
+import { loginCounter, httpRequestDuration } from "@/src/app/api/metrics/route";
 
 //Rate Limit
 const rateLimitMap = new Map<string, {count: number; resetAt: number}>();
@@ -25,7 +25,7 @@ function checkRateLimit(ip: string): {allowed: boolean, remaining: number}{
 
 const EMAIL_REGEX = /^[^@\s]{1,64}@[^@\s]{1,255}$/;
 
-export async function POST(request: NextRequest){
+async function handleLogin(request: NextRequest): Promise<NextResponse> {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown"
     const timestamp = new Date().toISOString()
 
@@ -139,5 +139,14 @@ export async function POST(request: NextRequest){
         }))
         return NextResponse.json({error: "Internal server error"}, {status: 500})
     }
+}
 
+export async function POST(request: NextRequest) {
+    const start = Date.now();
+    const response = await handleLogin(request);
+    httpRequestDuration.observe(
+        { path: "/api/auth/login", method: "POST", status: String(response.status) },
+        (Date.now() - start) / 1000
+    );
+    return response;
 }
